@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Heim Travel</title>
+  <!-- The H of the Heim wordmark (Bodoni Moda, opsz 28, weight 500), redrawn as outlines.
+       Hairlines are thickened from the original so the letter holds at 16 px. -->
+  <rect width="64" height="64" rx="12" fill="#F6F1EB"/>
+  <path fill="#454A4D" d="M13 12h16v2.5h-5v16.25h16V14.5h-5V12h16v2.5h-5v35h5V52H35v-2.5h5V33.25H24V49.5h5V52H13v-2.5h5v-35h-5z"/>
+</svg>
