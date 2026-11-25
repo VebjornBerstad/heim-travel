@@ -245,6 +245,14 @@ a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px
   text-wrap: balance;
 }
 
+.statement-note {
+  margin-top: 1.75rem;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+  color: var(--slate);
+}
+
 /* Inspiration: full-screen images alternate with framed ones */
 
 .section-head {
