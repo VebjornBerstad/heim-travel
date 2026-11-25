@@ -107,12 +107,11 @@ a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px
 .nav { display: flex; gap: clamp(1.25rem, 2.6vw, 2.5rem); }
 
 .nav a {
+  position: relative;
+  display: inline-block;
   text-decoration: none;
   padding: 0.2rem 0;
-  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
-  transition: background-size 0.5s var(--ease);
 }
-.nav a:hover, .nav a:focus-visible { background-size: 100% 1px; }
 
 .wordmark { display: block; width: min(13.5rem, 46vw); }
 .wordmark svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -127,13 +126,12 @@ a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px
   opacity: 0.75;
   background: none;
   border: 0;
+  position: relative;
   padding: 0.35rem 0;
   cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.3s var(--ease), opacity 0.3s var(--ease);
+  transition: opacity 0.3s var(--ease);
 }
-.lang button:hover { opacity: 1; }
-.lang button[aria-pressed="true"] { opacity: 1; border-bottom-color: currentColor; }
+.lang button:hover, .lang button[aria-pressed="true"] { opacity: 1; }
 
 /* Hero film */
 
@@ -187,9 +185,10 @@ a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px
   font-weight: 500;
   text-decoration: none;
 }
-/* No line at rest. On hover and keyboard focus it draws in from the left;
-   on leaving it continues out to the right. */
-.link::after {
+/* The underline shared by text links, the section nav and the language switch.
+   No line at rest. On hover and keyboard focus it draws in from the left;
+   on leaving it continues out to the right. The current language keeps its line. */
+.link::after, .nav a::after, .lang button::after {
   content: "";
   position: absolute;
   inset: auto 0 0 0;
@@ -199,7 +198,10 @@ a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px
   transform-origin: right;
   transition: transform 0.7s var(--ease);
 }
-.link:hover::after, .link:focus-visible::after {
+.link:hover::after, .link:focus-visible::after,
+.nav a:hover::after, .nav a:focus-visible::after,
+.lang button:hover::after, .lang button:focus-visible::after,
+.lang button[aria-pressed="true"]::after {
   transform: none;
   transform-origin: left;
 }
