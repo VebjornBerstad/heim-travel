@@ -4,16 +4,19 @@
 Usage:  python3 tools/build_hero_film.py            # full build
         python3 tools/build_hero_film.py --dry-run  # print the shot list only
 
-Writes:
-  footage/build/hero-master.mp4      graded master (not committed)
-  assets/film/heim-hero-1080.mp4     website film, 1920x1080
-  assets/film/heim-hero-720.mp4      website film for small screens, 1280x720
-  assets/film/heim-hero-poster.jpg   first frame, shown before the film loads
+The film is a set of short stories. Each story is its own file, and the page plays them in a
+new random order on every visit (see "Film" in script.js), always ending on the story named
+"close". Per story, this writes:
+  footage/build/<story>-master.mp4       graded master (not committed)
+  assets/film/heim-<story>-1080.mp4      website film, 1920x1080
+  assets/film/heim-<story>-720.mp4       website film for small screens, 1280x720
+  assets/film/heim-<story>-poster.jpg    first frame, shown before the film loads
 
-To change the edit, edit SHOTS below. Each shot is
+To change the edit, edit STORIES below. Each shot is
   (clip, start second, frames, look, zoom, vertical anchor)
-The film runs at 25 fps: 8 frames is a flash, 12 about half a second, 50 a two-second hold.
+The film runs at 25 fps: 7 to 10 frames is a flash, 12 about half a second, 50 a two-second hold.
 A clip whose name starts with "photo-" is a still; it gets a slow push-in instead of a start time.
+If you add, remove or rename a story, update the STORIES list in script.js to match.
 """
 import subprocess
 import sys
@@ -25,8 +28,6 @@ BUILD = ROOT / "footage" / "build"
 OUT = ROOT / "assets" / "film"
 
 FPS = 25
-TOTAL_FRAMES = 30 * FPS  # 30 second loop
-MIN_HOLD = 50            # the opening hold (the shot with frames = None) must be at least this long
 
 # Clip names are the file names in footage/pexels/ (Pexels ids unless prefixed); see assets/film/CREDITS.md.
 FJORD_MIST, LOFOTEN, FJORD_BOAT, WATERFALL, BENCH_VIEW = "33031598", "40303327", "14415570", "33381779", "5976349"
@@ -58,72 +59,77 @@ LOOKS = {
 
 C = 0.5  # default vertical anchor: centre. 0 keeps the top of the frame, 1 the bottom.
 
-# The film ebbs and flows in three waves. Each wave starts on long, still shots, shortens
-# as it rises, and breaks in a run of party flashes; the next wave opens calm again.
-# The last wave breaks hardest and ends the film, so the loop lands back on the still fjord.
-# One shot has frames = None: it takes whatever is left of the 30 seconds (here, the opening hold).
+# Every story has two halves: the place and what you do there, opening on its longest, calmest
+# shot, and then the event: the table, the toast and the party, in quicker cuts. Each story
+# stands on its own, because the page shuffles them. Party footage with people in it is always
+# black and white.
 #
-# (clip, start second, frames, look, zoom, vertical anchor)
-SHOTS = [
-    # Wave 1, the coast. Calm...
-    (FJORD_MIST, 2.0, None, "bw", 1.0, C),
-    (LOFOTEN, 1.0, 55, "nat", 1.0, C),
-    (HOUSE_FLAG, 3.0, 14, "home", 1.0, 0.43),  # portrait phone clip: the terrace band, on the wave
-    # ...rising...
-    (HIKE_RIDGE, 3.0, 30, "nat", 1.0, C),
-    (SAILBOAT, 2.0, 22, "bw", 1.0, C),
-    (FJORD_BOAT, 3.0, 18, "nat", 1.0, C),
-    (SPEEDBOAT, 3.0, 14, "nat", 1.0, C),
-    (WATERFALL, 2.0, 12, "bw", 1.0, C),
-    (TRAIL, 3.0, 10, "nat", 1.0, C),
-    # ...breaking: a first glimpse of the party
-    (FIREWORK_TRAILS, 9.0, 8, "vivid", 1.0, C),
-    (COUPE, 2.0, 8, "warm", 1.0, C),
-    (CONFETTI, 2.0, 8, "vivid", 1.3, C),
-    (DJ, 5.0, 8, "bwparty", 1.0, C),
+# (story name, [(clip, start second, frames, look, zoom, vertical anchor), ...])
+STORIES = [
+    # The fjord by boat: still water, out on it, then wine, a glass raised and the party.
+    ("fjord", [
+        (FJORD_MIST, 2.0, 81, "bw", 1.0, C),
+        (SAILBOAT, 2.0, 26, "bw", 1.0, C),
+        (FJORD_BOAT, 3.0, 22, "nat", 1.0, C),
+        (SPEEDBOAT, 3.0, 17, "nat", 1.0, C),
+        (WATERFALL, 2.0, 14, "bw", 1.0, C),
+        (WINE_POUR, 2.0, 36, "bw", 1.0, C),
+        (COUPE, 2.0, 10, "warm", 1.0, C),
+        (CONFETTI, 2.0, 10, "vivid", 1.3, C),
+        (FIREWORK_TRAILS, 9.0, 10, "vivid", 1.0, C),
+        (DJ, 2.0, 7, "bwparty", 1.0, C),
+        (FIREWORKS, 20.0, 7, "vivid", 1.0, C),
+    ]),
 
-    # Wave 2, winter. Calm...
-    (SNOW_PEAKS, 15.0, 55, "bw", 1.0, C),
-    (AURORA_SKY, 0.3, 45, "nat", 1.0, C),
-    # ...rising...
-    (CLIMB_PEAK, 2.0, 26, "nat", 1.0, C),
-    (SKIER, 8.0, 18, "cool", 1.0, C),
-    (ROPED_TEAM, 5.0, 14, "nat", 1.0, C),
-    (WHITE_RIDGE, 1.0, 12, "cool", 1.0, C),
-    (REINDEER, 1.0, 12, "cool", 1.0, C),
-    (SNOW_VILLAGE, 2.0, 10, "cool", 1.0, C),
-    (GLACIER, 0.3, 10, "bw", 1.0, C),  # start of the clip only: later the climber's face is close
-    (ICE_SHORE, 0.5, 8, "cool", 1.0, C),
-    (SNOW_HOUSE, 3.0, 8, "cool", 1.0, C),
-    # ...breaking
-    (BONFIRE, 2.0, 8, "warm", 1.0, C),
-    (DANCE_FLOOR, 14.0, 8, "bwsil", 1.0, C),  # crowd as silhouette: no faces
-    (FIREWORKS, 8.0, 8, "vivid", 1.0, C),
-    (BARTENDER, 1.0, 8, "bw", 1.25, 1.0),  # hands and apron only
+    # A summer hike: the islands, the ridge, then dinner, a toast, a bonfire and a dance.
+    ("hike", [
+        (LOFOTEN, 1.0, 66, "nat", 1.0, C),
+        (HIKE_RIDGE, 3.0, 36, "nat", 1.0, C),
+        (TRAIL, 3.0, 12, "nat", 1.0, C),
+        (PLATING, 1.0, 24, "warm", 1.0, C),
+        (XMAS_TOAST, 1.0, 14, "bw", 1.0, C),
+        (BONFIRE, 2.0, 10, "warm", 1.0, C),
+        (DJ, 5.0, 10, "bwparty", 1.0, C),
+        (DANCE_FLOOR, 14.0, 10, "bwsil", 1.0, C),  # crowd as silhouette: no faces
+        (FIREWORK_TRAILS, 14.0, 7, "vivid", 1.0, C),
+    ]),
 
-    # Wave 3, the evening. Calm...
-    (FIRESIDE, 2.0, 45, "warm", 1.0, C),
-    (WINE_POUR, 2.0, 30, "bw", 1.0, C),
-    # ...rising...
-    (PLATING, 1.0, 20, "warm", 1.0, C),
-    (DESSERT, 1.2, 16, "warm", 1.0, C),
-    (XMAS_TABLE, 6.0, 14, "warm", 1.2, C),
-    (XMAS_TOAST, 1.0, 12, "bw", 1.0, C),
-    (CONFERENCE, 2.0, 10, "bw", 1.0, C),
-    (COUPE, 12.0, 10, "warm", 1.15, C),
-    # ...and breaking hardest: the party, to the last frame. Shots with people in them are black and white.
-    (DJ, 9.0, 8, "bwparty", 1.0, C),
-    (FIREWORK_TRAILS, 3.0, 8, "vivid", 1.0, C),
-    (DANCE_FLOOR, 12.0, 8, "bwsil", 1.0, C),
-    (CONFETTI, 5.0, 8, "vivid", 1.3, C),
-    (XMAS_TOAST, 5.0, 6, "bw", 1.2, C),
-    (FIREWORKS, 20.0, 6, "vivid", 1.0, C),
-    (DJ, 2.0, 6, "bwparty", 1.0, C),
-    (XMAS_TABLE, 1.0, 6, "warm", 1.0, C),
-    (DANCE_FLOOR, 18.0, 6, "bwsil", 1.0, C),
-    (CONFETTI, 7.5, 6, "vivid", 1.3, C),
-    (FIREWORK_TRAILS, 14.0, 6, "vivid", 1.0, C),
-    (FIREWORKS, 1.0, 6, "vivid", 1.0, C),  # last frame: the biggest burst, then straight back to the still fjord
+    # A winter summit: the peaks, the climb, then the fire, the bar and a toast.
+    ("summit", [
+        (SNOW_PEAKS, 15.0, 66, "bw", 1.0, C),
+        (CLIMB_PEAK, 2.0, 31, "nat", 1.0, C),
+        (ROPED_TEAM, 5.0, 17, "nat", 1.0, C),
+        (WHITE_RIDGE, 1.0, 14, "cool", 1.0, C),
+        (GLACIER, 0.3, 12, "bw", 1.0, C),  # start of the clip only: later the climber's face is close
+        (FIRESIDE, 2.0, 54, "warm", 1.0, C),
+        (BARTENDER, 1.0, 10, "bw", 1.25, 1.0),  # hands and apron only
+        (COUPE, 12.0, 12, "warm", 1.15, C),
+        (FIREWORKS, 8.0, 10, "vivid", 1.0, C),
+        (XMAS_TOAST, 5.0, 7, "bw", 1.2, C),
+    ]),
+
+    # An arctic day: skiing, reindeer, the village, northern lights, then dessert and the party.
+    ("arctic", [
+        (SKIER, 8.0, 22, "cool", 1.0, C),
+        (REINDEER, 1.0, 14, "cool", 1.0, C),
+        (SNOW_VILLAGE, 2.0, 12, "cool", 1.0, C),
+        (ICE_SHORE, 0.5, 10, "cool", 1.0, C),
+        (SNOW_HOUSE, 3.0, 10, "cool", 1.0, C),
+        (AURORA_SKY, 0.3, 54, "nat", 1.0, C),
+        (DESSERT, 1.2, 19, "warm", 1.0, C),
+        (DJ, 9.0, 10, "bwparty", 1.0, C),
+        (FIREWORK_TRAILS, 3.0, 10, "vivid", 1.0, C),
+        (CONFETTI, 5.0, 10, "vivid", 1.3, C),
+    ]),
+
+    # The close, always last: the table, the room, the biggest burst, and a wave from the terrace.
+    ("close", [
+        (XMAS_TABLE, 6.0, 17, "warm", 1.2, C),
+        (CONFERENCE, 2.0, 12, "bw", 1.0, C),
+        (CONFETTI, 7.5, 7, "vivid", 1.3, C),
+        (FIREWORKS, 1.0, 7, "vivid", 1.0, C),
+        (HOUSE_FLAG, 3.0, 30, "home", 1.0, 0.43),  # portrait phone clip: the terrace band
+    ]),
 ]
 
 
@@ -134,25 +140,12 @@ def path(clip):
     return SRC / (f"{clip}.jpg" if clip.startswith("photo-") else f"{clip}.mp4")
 
 
-def exists(clip):
-    return path(clip).exists()
-
-
-def shots():
-    # A clip deleted from footage/pexels/ simply drops out of the film; the opening hold takes up the slack.
-    missing = sorted({s[0] for s in SHOTS if not exists(s[0])})
+def stories():
+    # A clip deleted from footage/ simply drops out of its story.
+    missing = sorted({s[0] for _, shots in STORIES for s in shots if not path(s[0]).exists()})
     if missing:
         print("not in footage/, skipped:", ", ".join(missing), file=sys.stderr)
-    kept = [s for s in SHOTS if exists(s[0])]
-    return fill(kept)
-
-
-def fill(SHOTS):
-    used = sum(s[2] for s in SHOTS if s[2])
-    last = TOTAL_FRAMES - used
-    if last < MIN_HOLD:
-        sys.exit(f"shot list is {used} frames; the opening hold would be {last} frames (need {MIN_HOLD} or more)")
-    return [(c, t, n or last, look, z, a) for c, t, n, look, z, a in SHOTS]
+    return [(name, [s for s in shots if path(s[0]).exists()]) for name, shots in STORIES]
 
 
 def is_photo(clip):
@@ -163,19 +156,7 @@ def run(cmd):
     subprocess.run([str(c) for c in cmd], check=True)
 
 
-def main():
-    plan = shots()
-    if "--dry-run" in sys.argv:
-        at = 0
-        for i, (c, t, n, look, z, a) in enumerate(plan, 1):
-            print(f"{i:2d}  {at / FPS:6.2f}s  {c:>17}  from {t:5.1f}s  {n:2d} frames  {look:5}  zoom {z}")
-            at += n
-        print(f"total {at} frames = {at / FPS:.2f}s, {len(plan)} shots")
-        return
-
-    BUILD.mkdir(parents=True, exist_ok=True)
-    OUT.mkdir(parents=True, exist_ok=True)
-
+def build(name, plan):
     inputs, chains, labels = [], [], []
     for i, (clip, start, frames, look, zoom, anchor) in enumerate(plan):
         crop = f"crop=1920:1080:(iw-1920)/2:(ih-1080)*{anchor}"
@@ -196,20 +177,42 @@ def main():
         labels.append(f"[v{i}]")
     graph = ";".join(chains) + ";" + "".join(labels) + f"concat=n={len(plan)}:v=1:a=0,format=yuv420p[out]"
 
-    master = BUILD / "hero-master.mp4"
+    master = BUILD / f"{name}-master.mp4"
     run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", graph, "-map", "[out]", "-an",
          "-r", FPS, "-c:v", "libx264", "-preset", "medium", "-crf", "12", master])
 
+    # Fragmented MP4, so the page can append the stories to one another as a single stream.
+    # Every story must be encoded with the same settings for that to work.
     web = ["-an", "-c:v", "libx264", "-profile:v", "high", "-pix_fmt", "yuv420p", "-preset", "slow",
-           "-g", FPS * 2, "-movflags", "+faststart",
+           "-g", FPS * 2, "-movflags", "+frag_keyframe+empty_moov+default_base_moof+negative_cts_offsets",
            "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709"]
     run(["ffmpeg", "-v", "error", "-y", "-i", master, *web, "-crf", "24", "-maxrate", "5M", "-bufsize", "10M",
-         OUT / "heim-hero-1080.mp4"])
+         OUT / f"heim-{name}-1080.mp4"])
     run(["ffmpeg", "-v", "error", "-y", "-i", master, "-vf", "scale=1280:720:flags=lanczos", *web,
-         "-crf", "25", "-maxrate", "2500k", "-bufsize", "5M", OUT / "heim-hero-720.mp4"])
+         "-crf", "25", "-maxrate", "2500k", "-bufsize", "5M", OUT / f"heim-{name}-720.mp4"])
     run(["ffmpeg", "-v", "error", "-y", "-i", master, "-frames:v", "1", "-q:v", "3", "-update", "1",
-         OUT / "heim-hero-poster.jpg"])
-    print("wrote", master, "and", OUT)
+         OUT / f"heim-{name}-poster.jpg"])
+
+
+def main():
+    plan = stories()
+    if "--dry-run" in sys.argv:
+        total = 0
+        for name, shots in plan:
+            at = 0
+            for i, (c, t, n, look, z, a) in enumerate(shots, 1):
+                print(f"{name:>7} {i:2d}  {at / FPS:5.2f}s  {c:>17}  from {t:5.1f}s  {n:2d} frames  {look:7}  zoom {z}")
+                at += n
+            print(f"{name:>7} is {at} frames = {at / FPS:.2f}s\n")
+            total += at
+        print(f"total {total} frames = {total / FPS:.2f}s in {len(plan)} stories")
+        return
+
+    BUILD.mkdir(parents=True, exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    for name, shots in plan:
+        build(name, shots)
+        print("wrote", name)
 
 
 if __name__ == "__main__":

@@ -37,12 +37,10 @@
 
 <main id="main">
   <section class="hero" id="top">
-    <video id="film" autoplay muted loop playsinline preload="metadata"
-      poster="assets/film/heim-hero-poster.jpg"
-      aria-label="A short film of Norwegian landscapes, dinners and gatherings" data-i18n-aria="film.alt">
-      <source src="assets/film/heim-hero-720.mp4" type="video/mp4" media="(max-width: 800px)">
-      <source src="assets/film/heim-hero-1080.mp4" type="video/mp4">
-    </video>
+    <!-- The film is a set of short stories; script.js picks their order and feeds them to this player. -->
+    <video id="film" muted playsinline preload="auto"
+      aria-label="A short film of Norwegian landscapes, dinners and gatherings" data-i18n-aria="film.alt"></video>
+    <noscript><img src="assets/film/heim-fjord-poster.jpg" alt=""></noscript>
     <button class="film-toggle" type="button" id="filmToggle" aria-pressed="false" aria-label="Pause film"></button>
     <div class="hero-copy">
       <h1>

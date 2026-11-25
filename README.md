@@ -46,9 +46,9 @@ Then open <http://localhost:4173>.
 | --- | --- |
 | `index.html` | The page markup, with the English copy. |
 | `styles.css` | All styling, including the motion and the small-screen layout. |
-| `script.js` | The Norwegian copy, language switching, the brief form, and scroll motion. |
+| `script.js` | The Norwegian copy, language switching, the hero film's playback order, the brief form, and scroll motion. |
 | `assets/` | The Heim Travel wordmark and icons, the photographs in `assets/photos/`, and the hero film in `assets/film/`. |
-| `tools/build_hero_film.py` | The edit of the hero film: which clips, in what order, for how long. Needs `ffmpeg` and the source clips in `footage/` (not in the repository; sources in `assets/film/CREDITS.md`). |
+| `tools/build_hero_film.py` | The edit of the hero film: which clips, in which story, for how long. The film is a set of short stories, one file each, that the page plays in a new random order on every visit. Needs `ffmpeg` and the source clips in `footage/` (not in the repository; sources in `assets/film/CREDITS.md`). |
 
 The page loads its fonts from Google Fonts and the [Lenis](https://github.com/darkroomengineering/lenis) smooth-scroll library from jsDelivr.
 

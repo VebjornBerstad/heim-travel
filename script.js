@@ -8,7 +8,7 @@ const NO = {
   'nav.contact': 'Kontakt',
   'h1.a': 'Heim er en følelse,',
   'h1.b': 'ikke et sted.',
-  'lede': 'Heim Travel er et DMC i Norge som planlegger incentivreiser, møter og arrangementer for bedrifter. Vi begynner med hva deres skal oppnå og hvem dere tar med, og planlegger hver dag slik at de føler seg hjemme.',
+  'lede': 'Heim Travel er et DMC i Norge som planlegger incentivreiser, møter og arrangementer for bedrifter. Vi begynner med hva dere skal oppnå og hvem dere tar med, og planlegger hver dag slik at de føler seg hjemme.',
   'cta': 'Start en samtale med oss',
   'film.alt': 'En kort film med norske landskap, middager og samlinger',
   'i.title': 'Inspirasjon, etter formål',
@@ -128,24 +128,105 @@ langButtons.forEach((b) => {
 
 // Film
 
+// The film is a set of short stories, one file each (built by tools/build_hero_film.py).
+// Every visit plays them in a new random order, then the close, then reshuffles.
+// The stories are appended to one another as a single stream, so the cuts between them
+// are as clean as the cuts inside them.
+const STORIES = ['fjord', 'hike', 'summit', 'arctic'];
+const CLOSE = 'close';
+const FILM_TYPE = 'video/mp4; codecs="avc1.640028"';
+const FILM_AHEAD = 10; // seconds of film to keep loaded ahead of the playhead
+
 const film = document.getElementById('film');
 const filmToggle = document.getElementById('filmToggle');
+const filmSize = window.matchMedia('(max-width: 800px)').matches ? '720' : '1080';
+const storySrc = (story) => `assets/film/heim-${story}-${filmSize}.mp4`;
 
-function syncFilmLabel() {
-  const paused = film.paused;
-  filmToggle.setAttribute('aria-pressed', String(paused));
-  filmToggle.setAttribute('aria-label', paused ? MSG[lang].play : MSG[lang].pause);
+let filmQueue = [];
+let filmLast = null;
+let filmOn = false;
+
+function nextStory() {
+  if (!filmQueue.length) {
+    const pool = [...STORIES];
+    while (pool.length) filmQueue.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    // Never open a round on the story that ended the last one.
+    if (filmQueue[0] === filmLast) filmQueue.push(filmQueue.shift());
+    filmLast = filmQueue[filmQueue.length - 1];
+    filmQueue.push(CLOSE);
+  }
+  return filmQueue.shift();
 }
 
-filmToggle.addEventListener('click', () => {
-  if (film.paused) film.play().catch(() => {}); else film.pause();
-});
-film.addEventListener('play', syncFilmLabel);
-film.addEventListener('pause', syncFilmLabel);
+function syncFilmLabel() {
+  filmToggle.setAttribute('aria-pressed', String(!filmOn));
+  filmToggle.setAttribute('aria-label', filmOn ? MSG[lang].pause : MSG[lang].play);
+}
 
-if (calm.matches) {
-  film.removeAttribute('autoplay');
-  film.pause();
+function setFilm(on) {
+  filmOn = on;
+  if (on) film.play().catch(() => { filmOn = false; syncFilmLabel(); });
+  else film.pause();
+  syncFilmLabel();
+}
+
+// Fallback for browsers that cannot stream: play the files one after another.
+// There is a short pause at each cut while the next file starts.
+function playStoriesOneByOne(first) {
+  film.addEventListener('ended', () => {
+    film.src = storySrc(nextStory());
+    if (filmOn) film.play().catch(() => {});
+  });
+  film.src = storySrc(first);
+}
+
+function streamStories(Source, first) {
+  const source = new Source();
+  film.disableRemotePlayback = true; // required by ManagedMediaSource on iPhone
+  film.src = URL.createObjectURL(source);
+
+  source.addEventListener('sourceopen', async () => {
+    const buffer = source.addSourceBuffer(FILM_TYPE);
+    buffer.mode = 'sequence'; // each story starts where the one before it ends
+    const settle = () => new Promise((resolve, reject) => {
+      buffer.addEventListener('updateend', resolve, { once: true });
+      buffer.addEventListener('error', reject, { once: true });
+    });
+    const ahead = () => (film.buffered.length ? film.buffered.end(film.buffered.length - 1) - film.currentTime : 0);
+
+    try {
+      for (let story = first; ; story = nextStory()) {
+        while (ahead() > FILM_AHEAD) await new Promise((resolve) => film.addEventListener('timeupdate', resolve, { once: true }));
+        const response = await fetch(storySrc(story));
+        if (!response.ok) throw new Error(`film: ${response.status}`);
+        const reader = response.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer.appendBuffer(value);
+          await settle();
+        }
+        // Drop what has already played, so a long visit does not keep the whole film in memory.
+        if (film.currentTime > 30) {
+          buffer.remove(0, film.currentTime - 10);
+          await settle();
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, { once: true });
+}
+
+filmToggle.addEventListener('click', () => setFilm(!filmOn));
+
+{
+  const first = nextStory();
+  const Source = window.ManagedMediaSource || window.MediaSource;
+  film.poster = `assets/film/heim-${first}-poster.jpg`;
+  if (Source && Source.isTypeSupported(FILM_TYPE)) streamStories(Source, first);
+  else playStoriesOneByOne(first);
+  setFilm(!calm.matches);
 }
 
 // Brief form: composes an email, never asks for a destination

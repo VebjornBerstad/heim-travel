@@ -1,6 +1,6 @@
 # Hero film: sources and licence
 
-The hero film (`heim-hero-1080.mp4`, `heim-hero-720.mp4`, `heim-hero-poster.jpg`) is cut from the stock clips below, downloaded from [Pexels](https://www.pexels.com) and [Mixkit](https://mixkit.co) on 22 November 2026.
+The hero film (the `heim-<story>-1080.mp4`, `heim-<story>-720.mp4` and `heim-<story>-poster.jpg` files here) is cut from the stock clips below, downloaded from [Pexels](https://www.pexels.com) and [Mixkit](https://mixkit.co) on 22 November 2026.
 
 Each source page listed its item as free to use, including commercially, with no attribution required: the Pexels items under the [Pexels licence](https://www.pexels.com/license/) (one as CC0), the two Mixkit clips under the [Mixkit Stock Video Free License](https://mixkit.co/license/). Many other Mixkit clips are under its Restricted License (personal use only) and were left out for that reason. The licence does not allow showing identifiable people in a bad light or implying that they endorse a product. Check the clip's page again before launch if the licence matters to you; a clip's terms are whatever its page says on the day.
 
