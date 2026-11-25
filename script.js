@@ -26,7 +26,7 @@ const NO = {
   'i.d.alt': 'Et langbord dekket til middag med blomster og levende lys, i et mørkt rom',
   'i.d.t': 'For å invitere kundene',
   'i.d.p': 'De viktigste kundene deres, tatt så godt imot at de husker hvem som inviterte.',
-  's.alt': 'En rød rorbu på påler over en bekk, med stille fjord og grått fjell bak',
+  's.alt': 'Et saueskinn på en benk under småruta vindu i et gammelt tømmerhus, med gårdshus i tømmer utenfor',
   's.title': 'Heim betyr hjem.',
   's.p1': 'Heim er ordet for hjem, og for følelsen av å være der: noen venter deg, noen har tenkt på hva du trenger, og du kan være deg selv.',
   's.p2': 'Den følelsen vil vi gi menneskene dere tar med. Vi tror at mennesker som føler seg hjemme, snakker mer åpent, blir sittende lenger ved bordet og husker hvem de var sammen med. Enten det er en kickoff, en incentivreise eller et kundearrangement, blir det bedre av det.',
@@ -56,7 +56,7 @@ const MSG = {
     opened: 'Your email app should now have your brief ready to send. If nothing opened, write to ',
     subject: 'A brief for Heim Travel',
     labels: { name: 'Name', company: 'Company', occasion: 'The occasion', goal: 'What it must achieve' },
-    title: 'Heim Travel | Destination management company in Norway',
+    title: 'Heim Travel',
   },
   no: {
     play: 'Spill av filmen',
@@ -66,7 +66,7 @@ const MSG = {
     opened: 'E-postprogrammet ditt skal nå ha briefen klar til sending. Hvis ingenting åpnet seg, skriv til ',
     subject: 'En brief til Heim Travel',
     labels: { name: 'Navn', company: 'Selskap', occasion: 'Anledningen', goal: 'Hva det skal oppnå' },
-    title: 'Heim Travel | DMC i Norge',
+    title: 'Heim Travel',
   },
 };
 

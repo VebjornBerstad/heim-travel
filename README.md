@@ -65,4 +65,4 @@ GitHub Pages serves static files only, so the contact form does not send anythin
 ## Stock material
 
 - The hero film is cut from free stock clips (see `assets/film/CREDITS.md`).
-- The four inspiration photographs in `assets/photos/` (`celebrate-table`, `decide-table`, `together-ridge`, `host-table`) and the story photograph (`story-rorbu`) are free stock from Unsplash, saved locally. The eagle photographs are Heim Travel's own and are not currently used on the page.
+- The four inspiration photographs in `assets/photos/` (`celebrate-table`, `decide-table`, `together-ridge`, `host-table`) and the story photograph (`story-window`, by Barnabas Davoti, from an old log house in Sigdal) are free stock from Unsplash, saved locally. The story photograph has been graded warmer and grainier than the original. The eagle photographs are Heim Travel's own and are not currently used on the page.

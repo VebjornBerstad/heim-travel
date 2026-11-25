@@ -538,7 +538,6 @@ main, .footer, .nav { transition: opacity 0.28s ease; }
   .pair .plate:last-child { margin-top: 0; margin-left: auto; }
 
   .story, .contact { grid-template-columns: 1fr; }
-  .story-img { aspect-ratio: 4 / 3; }
 }
 
 @media (max-width: 520px) {
